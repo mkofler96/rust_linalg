@@ -21,7 +21,7 @@ mod tests {
     #[test]
     fn test_lu_decomposition() {
         // Decompose matrix to LU
-        let (l, u) = lu_decomposition(*MAT);
+        let (l, u) = lu_decomposition(&*MAT);
 
         // Check that L*U == mat
         let check_lu = l * u;
@@ -31,23 +31,23 @@ mod tests {
     #[test]
     fn test_forward_substitution() {
         // Perform forward substitution
-        let (l, _) = lu_decomposition(*MAT);
+        let (l, _) = lu_decomposition(&*MAT);
         let y = forward_substitution(&l, &*B);
 
         // Check that L*y == b
         let check_forward = l * y;
-        assert!(all_near(check_forward, *B));
+        assert!(all_near(&check_forward, &*B));
     }
 
     #[test]
     fn test_backward_substitution() {
         // Perform forward substitution
-        let (l, u) = lu_decomposition(*MAT);
+        let (l, u) = lu_decomposition(&*MAT);
         let y = forward_substitution(&l, &*B);
         let x = backward_substitution(&u, &y);
         // Check that U*x = y
         let check_backward = u * x;
-        assert!(all_near(check_backward, y));
+        assert!(all_near(&check_backward, &y));
     }
 
     #[test]
@@ -56,7 +56,7 @@ mod tests {
         let x = linsolve(&*MAT, &*B);
         // Check if solution fulfills system of equations
         let check_solution = *MAT*x;
-        assert!(all_near(check_solution, *B));
+        assert!(all_near(&check_solution, &*B));
     }
 
 

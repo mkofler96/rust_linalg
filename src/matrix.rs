@@ -99,9 +99,9 @@ impl<const L: usize, const M: usize, const N: usize> Mul<Matrix<M, N>> for Matri
 // }
 
 
-pub fn lu_decomposition<const M: usize> (mat: Matrix<M, M>) -> (Matrix<M, M>, Matrix<M, M>) {
+pub fn lu_decomposition<const M: usize> (mat: &Matrix<M, M>) -> (Matrix<M, M>, Matrix<M, M>) {
     // Implementation of LU decomposition
-    let mut u = mat;
+    let mut u = *mat;
     let mut l = Matrix {
         data: [[0.; M]; M],
     };
@@ -171,14 +171,14 @@ pub fn backward_substitution<const M: usize>(upper: &Matrix<M, M>, y: &Matrix<M,
 
 pub fn linsolve<const M: usize>(mat: &Matrix<M, M>, b: &Matrix<M, 1>) -> Matrix<M, 1> {
     // Implementation of forward substitution Ux = y
-    let (l, u) = lu_decomposition(*mat);
+    let (l, u) = lu_decomposition(&*mat);
     let y = forward_substitution(&l, &b);
     let x = backward_substitution(&u, &y);
     x
 }
 
 
-pub fn all_near <const M: usize, const N: usize> (a: Matrix<M, N>, b: Matrix<M, N>)-> bool{
+pub fn all_near <const M: usize, const N: usize> (a: &Matrix<M, N>, b: &Matrix<M, N>)-> bool{
     let mut result = true;
     a.print();
     b.print();
