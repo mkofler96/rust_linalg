@@ -107,7 +107,7 @@ fn lu_decomposition<const M: usize> (mat: Matrix<M, M>) -> (Matrix<M, M>, Matrix
     let mut L = Matrix {
         data: [[0.; M]; M],
     };
-    for k in 0..(M-1){
+    for k in 0..M{
         for i in k..M{
             L.data[i][k] = U.data[i][k]/U.data[k][k];
             // U.print();
