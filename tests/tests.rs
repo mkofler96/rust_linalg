@@ -35,8 +35,29 @@ mod tests {
 
         // Check that L*y == b
         let check_forward = l * y;
-        assert_eq!(check_forward, *B);
+        assert!(all_near(check_forward, *B));
     }
+
+    #[test]
+    fn test_backward_substitution() {
+        // Perform forward substitution
+        let (l, u) = lu_decomposition(*MAT);
+        let y = forward_substitution(&l, &*B);
+        let x = backward_substitution(&u, &y);
+        // Check that U*x = y
+        let check_backward = u * x;
+        assert!(all_near(check_backward, y));
+    }
+
+    #[test]
+    fn test_linsolve() {
+        // Solve linear system of equations
+        let x = linsolve(&*MAT, &*B);
+        // Check if solution fulfills system of equations
+        let check_solution = *MAT*x;
+        assert!(all_near(check_solution, *B));
+    }
+
 
     #[test]
     fn test_min_max() {

@@ -1,4 +1,5 @@
 use std::ops::{Add, Mul, Sub};
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Matrix<const M: usize, const N: usize> {
     pub data: [[f64; N]; M],
@@ -139,7 +140,56 @@ pub fn forward_substitution<const M: usize>(lower: &Matrix<M, M>, b: &Matrix<M, 
             y.data[i][0] -= lower.data[i][j]*y.data[j][0];
         }
         y.data[i][0] /= lower.data[i][i];
-        y.print();
     }
     y
+}
+
+pub fn backward_substitution<const M: usize>(upper: &Matrix<M, M>, y: &Matrix<M, 1>) -> Matrix<M, 1> {
+    // Implementation of forward substitution Ux = y
+    let mut x = Matrix{
+        data: [[0.; 1];M],
+    };
+    println!("Upper:");
+    upper.print();
+    println!("y:");
+    y.print();
+    for i in (0..M).rev(){
+        x.data[i][0] = y.data[i][0];
+        for j in (i+1)..M{
+            println!("-------------------------------------------");
+            println!("j: {}, new = {} - {}*{}",j, x.data[i][0], upper.data[i][j], x.data[j][0]);
+            x.data[i][0] -= upper.data[i][j]*x.data[j][0];
+            
+        }
+        println!("{}/{}", x.data[i][0], upper.data[i][i]);
+        x.data[i][0] /= upper.data[i][i];
+        println!("-------------------------------------------");
+        x.print();
+    }
+    x
+}
+
+pub fn linsolve<const M: usize>(mat: &Matrix<M, M>, b: &Matrix<M, 1>) -> Matrix<M, 1> {
+    // Implementation of forward substitution Ux = y
+    let (l, u) = lu_decomposition(*mat);
+    let y = forward_substitution(&l, &b);
+    let x = backward_substitution(&u, &y);
+    x
+}
+
+
+pub fn all_near <const M: usize, const N: usize> (a: Matrix<M, N>, b: Matrix<M, N>)-> bool{
+    let mut result = true;
+    a.print();
+    b.print();
+    for i in 0..M{
+        for j in 0..N{
+            if (a.data[i][j] - b.data[i][j]).abs() > f64::EPSILON*10.{
+                println!("{} - {} > {}", a.data[i][j], b.data[i][j], f64::EPSILON);
+                result = false;
+            }
+        }
+    }
+    println!("finishd check");
+    result
 }
