@@ -1,7 +1,7 @@
 use std::ops::{Add, Mul, Sub};
 #[derive(Debug)]
 
-#[derive(Clone, Copy)] 
+#[derive(Clone, Copy, PartialEq)]
 struct Matrix<const M: usize, const N: usize> {
     data: [[f64; N]; M],
 }
@@ -103,34 +103,49 @@ fn linsolve<const M: usize> (mat: Matrix<M, M>, b: Matrix<M,1>) -> Matrix<M,1>{
 
 fn lu_decomposition<const M: usize> (mat: Matrix<M, M>) -> (Matrix<M, M>, Matrix<M, M>) {
     // Implementation of LU decomposition
-    let mut U = mat;
-    let mut L = Matrix {
+    let mut u = mat;
+    let mut l = Matrix {
         data: [[0.; M]; M],
     };
     for k in 0..M{
         for i in k..M{
-            L.data[i][k] = U.data[i][k]/U.data[k][k];
+            l.data[i][k] = u.data[i][k]/u.data[k][k];
             // U.print();
             // println!("Division: {}/{} = {}", U.data[i][k], U.data[k][k], U.data[i][k]/U.data[k][k]);
-            L.data[i][i] = 1.;
+            l.data[i][i] = 1.;
             if i>k{
                 for j in 0..M{
-                    U.data[i][j] = U.data[i][j] - L.data[i][k]*U.data[k][j];
+                    u.data[i][j] = u.data[i][j] - l.data[i][k]*u.data[k][j];
                 }
             }
         }
          
-        println!("-------------L{}-------------", k+1);
-        L.print();
-        println!("-------------U{}-------------", k+1);
-        U.print();
+        // println!("-------------L{}-------------", k+1);
+        // L.print();
+        // println!("-------------U{}-------------", k+1);
+        // U.print();
         
     }
 
 
-    return (L, U)
+    return (l, u)
 }
 
+fn forward_substitution<const M: usize>(lower: &Matrix<M, M>, b: &Matrix<M, 1>) -> Matrix<M, 1> {
+    // Implementation of forward substitution Ly = b
+    let mut y = Matrix{
+        data: [[0.; 1];M],
+    };
+    for i in 0..M{
+        y.data[i][0] = b.data[i][0];
+        for j in 0..i{
+            y.data[i][0] -= lower.data[i][j]*y.data[j][0];
+        }
+        y.data[i][0] /= lower.data[i][i];
+        y.print();
+    }
+    y
+}
 
 fn main() {
     // let mat = Matrix {
@@ -143,12 +158,62 @@ fn main() {
         data: [[2., 1., -1., 2.], [4., 3., -1., 4.], [4., 1., -2., 3.], [6., 3., 1., 7.]],
     };
     let b = Matrix {
-        data: [[1.], [2.], [3.]],
+        data: [[1.], [2.], [3.], [4.]],
     };
-    let (L, U) = lu_decomposition(mat);
+    let (l, u) = lu_decomposition(mat);
     // let res = linsolve(mat, b);
     // L.print();
     // U.print();
-    let check = L*U;
-    check.print();
+    let check = l*u;
+    let y = forward_substitution(&l, &b);
+    let check2 = l*y;
+    check2.print()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lazy_static::lazy_static;
+
+    // Define matrices mat and b as static variables using lazy_static
+    lazy_static! {
+        static ref MAT: Matrix<4, 4> = Matrix {
+            data: [[2., 1., -1., 2.], [4., 3., -1., 4.], [4., 1., -2., 3.], [6., 3., 1., 7.]],
+        };
+        static ref B: Matrix<4, 1> = Matrix {
+            data: [[1.], [2.], [3.], [4.]],
+        };
+    }
+
+    #[test]
+    fn test_lu_decomposition() {
+        // Decompose matrix to LU
+        let (l, u) = lu_decomposition(*MAT);
+
+        // Check that L*U == mat
+        let check_lu = l * u;
+        assert_eq!(check_lu, *MAT);
+    }
+
+    #[test]
+    fn test_forward_substitution() {
+        // Perform forward substitution
+        let (l, _) = lu_decomposition(*MAT);
+        let y = forward_substitution(&l, &*B);
+
+        // Check that L*y == b
+        let check_forward = l * y;
+        assert_eq!(check_forward, *B);
+    }
+
+    #[test]
+    fn test_min_max() {
+        // check min
+        let min = MAT.min();
+        assert_eq!(min, -2.);
+        // check max
+        let max = MAT.max();
+        assert_eq!(max, 7.);        
+    }
+}
+
